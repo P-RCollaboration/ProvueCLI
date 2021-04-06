@@ -1,5 +1,6 @@
 using ProvueCLI.Configuration;
 using ProvueCLI.PresentationClasses;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -77,6 +78,56 @@ namespace ProvueCLIUnitTest {
 
 			// assert
 			Assert.Equal ( testConfiguration , configuration );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_WebServerHost () {
+			// arrange
+			var reader = new ApplicationConfigurationReader ();
+			var testConfiguration = new ApplicationConfiguration { WebServerHost = "127.0.0.1" };
+
+			// act
+			var configuration = await reader.ReadConfiguration ( new List<string> { @"host:127.0.0.1" } );
+
+			// assert
+			Assert.Equal ( testConfiguration , configuration );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_WebServerPort () {
+			// arrange
+			var reader = new ApplicationConfigurationReader ();
+			var testConfiguration = new ApplicationConfiguration { WebServerPort = 8080 };
+
+			// act
+			var configuration = await reader.ReadConfiguration ( new List<string> { @"port:8080" } );
+
+			// assert
+			Assert.Equal ( testConfiguration , configuration );
+		}
+
+		[Theory]
+		[InlineData ( "" )]
+		[InlineData ( "0" )]
+		[InlineData ( "80" )]
+		[InlineData ( "200" )]
+		[InlineData ( "-1" )]
+		[InlineData ( "65545" )]
+		[InlineData ( "74500" )]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_WebServerPort_Throw_OutOfRange (string port) {
+			// arrange
+			var reader = new ApplicationConfigurationReader ();
+
+			// assert
+			await Assert.ThrowsAsync<ArgumentException> (
+				async () => {
+					// act
+					var configuration = await reader.ReadConfiguration ( new List<string> { @"port:" + port } );
+				}
+			);
 		}
 
 	}

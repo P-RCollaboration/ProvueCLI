@@ -89,6 +89,11 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private ApplicationConfiguration ParseWebServerPort ( ReadOnlySpan<char> value , ApplicationConfiguration applicationConfiguration ) {
+			if (value.Length == 0) {
+				Console.WriteLine ( $"Port must be specified! Format port:<number>. Example port:8080." );
+				throw new ArgumentException ( nameof ( value ) );
+			}
+
 			var port = Convert.ToInt32 ( value.ToString () );
 
 			if ( port < 1000 ) {
