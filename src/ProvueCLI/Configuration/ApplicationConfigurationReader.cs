@@ -1,4 +1,5 @@
-﻿using ProvueCLI.PresentationClasses;
+﻿using ProvueCLI.Loggers;
+using ProvueCLI.PresentationClasses;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +28,12 @@ namespace ProvueCLI.Configuration {
 		private const string ReleaseFolder = "releasefolder";
 
 		private const string BuildRelease = "buildrelease";
+		
+		private readonly ILogger m_logger;
+
+		public ApplicationConfigurationReader ( ILogger logger ) {
+			m_logger = logger;
+		}
 
 		public async Task<ApplicationConfiguration> ReadConfiguration ( IEnumerable<string> arguments ) {
 			ApplicationConfiguration configuration = new ();
@@ -36,7 +43,7 @@ namespace ProvueCLI.Configuration {
 				try {
 					configuration = await ReadConfigurationFile ( directoryConfigurationFile );
 				} catch {
-					Console.WriteLine ( $"Can't read configuration file on path {directoryConfigurationFile}! Check that file is correct." );
+					m_logger.Log ( $"Can't read configuration file on path {directoryConfigurationFile}! Check that file is correct." );
 				}
 			}
 

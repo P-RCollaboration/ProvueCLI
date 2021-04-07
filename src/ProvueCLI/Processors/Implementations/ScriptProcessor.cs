@@ -11,9 +11,11 @@ namespace ProvueCLI.Processors.Implementations {
 		public Task<string> ProcessScript ( string content , ComponentContextModel componentContextModel ) {
 
 			// minification and ulifying for release
-			if ( Program.ApplicationConfiguration.BuildForRelease ) return Task.FromResult ( Uglify.Js ( content ).Code );
-
-			//TODO: support transpilers like babel
+			if ( Program.ApplicationConfiguration.BuildForRelease ) {
+				return Task.FromResult ( Uglify.Js ( content ).Code );
+			} else {
+				content = content.Replace ( "</script>" , $"//# sourceURL={componentContextModel.FileName}\n</script>" );
+			}
 
 			return Task.FromResult ( content );
 		}

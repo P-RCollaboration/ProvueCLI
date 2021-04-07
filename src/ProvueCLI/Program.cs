@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ProvueCLI.Configuration;
+using ProvueCLI.Loggers.Implementations;
 using ProvueCLI.PresentationClasses;
 using System.Threading.Tasks;
 
@@ -13,9 +15,12 @@ namespace ProvueCLI {
 		public static ApplicationConfiguration ApplicationConfiguration => m_applicationConfiguration;
 
 		public static async Task Main ( string[] args ) {
-			m_applicationConfiguration = await new ApplicationConfigurationReader ().ReadConfiguration ( args[1..] );
+			m_applicationConfiguration = await new ApplicationConfigurationReader ( new ConsoleLogger () ).ReadConfiguration ( args[1..] );
 
 			if ( !m_applicationConfiguration.IsRunDeveloplementServer ) {
+				var serviceCollection = new ServiceCollection ();
+				new Startup ().ConfigureServices ( serviceCollection );
+				var serviceProvider = serviceCollection.BuildServiceProvider ();
 
 			}
 

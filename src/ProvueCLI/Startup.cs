@@ -4,12 +4,22 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using ProvueCLI.Configuration;
+using ProvueCLI.Loggers;
+using ProvueCLI.Loggers.Implementations;
+using ProvueCLI.Processors;
+using ProvueCLI.Processors.Implementations;
 
 namespace ProvueCLI {
 
 	public class Startup {
 
 		public void ConfigureServices ( IServiceCollection services ) {
+			services.AddTransient<ApplicationConfigurationReader> ();
+			services.AddTransient<ITemplateProcessor , TemplateProcessor> ();
+			services.AddTransient<IScriptProcessor , ScriptProcessor> ();
+			services.AddTransient<IStyleProcessor , StyleProcessor> ();
+			services.AddTransient<ILogger , ConsoleLogger> ();
 		}
 
 		public void Configure ( IApplicationBuilder app , IWebHostEnvironment env ) {
