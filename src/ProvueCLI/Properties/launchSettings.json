@@ -17,6 +17,7 @@
     },
     "ProvueCLI": {
       "commandName": "Project",
+      "commandLineArgs": "sourcefolder:D:\\work\\Repositories\\PRCollaborations\\corecomponents\\CoreComponents\\src buildfolder:D:\\work\\Repositories\\PRCollaborations\\corecomponents\\CoreComponents\\build",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

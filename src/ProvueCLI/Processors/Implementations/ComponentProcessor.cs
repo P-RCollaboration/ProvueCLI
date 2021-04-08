@@ -67,8 +67,7 @@ namespace ProvueCLI.Processors.Implementations {
 		}
 
 		private Task<string> GetScript ( string content , ComponentContextModel contextModel ) {
-			var startIndex = content.IndexOf ( "<script>" , StringComparison.OrdinalIgnoreCase );
-			var endIndex = content.IndexOf ( "</script>" , StringComparison.OrdinalIgnoreCase );
+			var (startIndex, endIndex) = GetContentPart ( content , "script" );
 
 			if ( startIndex == -1 ) {
 				var errorMessage = $"Component `{contextModel.FileName}` don't have script tag! Script tag is required part of component!";
@@ -80,15 +79,15 @@ namespace ProvueCLI.Processors.Implementations {
 		}
 
 		private Task<string> GetStyle ( string content , ComponentContextModel contextModel ) {
-			var startIndex = content.IndexOf ( "<style" , StringComparison.OrdinalIgnoreCase );
-			var endIndex = content.IndexOf ( "</style>" , StringComparison.OrdinalIgnoreCase );
+			var (startIndex, endIndex) = GetContentPart ( content , "style" );
+
+			if ( startIndex == -1 ) return Task.FromResult("");
 
 			return m_styleProcessor.ProcessStyle ( content.Substring ( startIndex , endIndex - startIndex ).ToString () , contextModel );
 		}
 
 		private Task<string> GetTemplate ( string content , ComponentContextModel contextModel ) {
-			var startIndex = content.IndexOf ( "<template>" , StringComparison.OrdinalIgnoreCase );
-			var endIndex = content.IndexOf ( "</template>" , StringComparison.OrdinalIgnoreCase );
+			var (startIndex, endIndex) = GetContentPart ( content , "template" );
 
 			if ( startIndex == -1 ) {
 				var errorMessage = $"Component `{contextModel.FileName}` don't have template tag! Template tag is required part of component!";
@@ -97,6 +96,14 @@ namespace ProvueCLI.Processors.Implementations {
 			}
 
 			return m_templateProcessor.ProcessTemplate ( content.Substring ( startIndex , endIndex - startIndex ).ToString () , contextModel );
+		}
+
+		private (int startIndex, int endIndex) GetContentPart ( string content , string tag ) {
+			var closeTag = $"</{tag}>";
+			var startIndex = content.IndexOf ( $"<{tag}>" , StringComparison.OrdinalIgnoreCase );
+			var endIndex = content.IndexOf ( closeTag , StringComparison.OrdinalIgnoreCase ) + closeTag.Length;
+
+			return (startIndex, endIndex);
 		}
 
 	}

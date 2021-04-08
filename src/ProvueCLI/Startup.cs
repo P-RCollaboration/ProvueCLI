@@ -20,6 +20,8 @@ namespace ProvueCLI {
 			services.AddTransient<IScriptProcessor , ScriptProcessor> ();
 			services.AddTransient<IStyleProcessor , StyleProcessor> ();
 			services.AddTransient<ILogger , ConsoleLogger> ();
+			services.AddTransient<IFolderProcessor , FolderProcessor> ();
+			services.AddTransient<IFileProcessor , ComponentProcessor> ();
 		}
 
 		public void Configure ( IApplicationBuilder app , IWebHostEnvironment env ) {
@@ -29,7 +31,6 @@ namespace ProvueCLI {
 			options.DefaultFileNames.Clear ();
 			app.UseDefaultFiles ( options );
 
-			app.UseStaticFiles ();
 			app.UseStaticFiles (
 				new StaticFileOptions () {
 					FileProvider = new PhysicalFileProvider (
