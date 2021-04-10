@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using ProvueCLI.Loggers;
+﻿using ProvueCLI.Loggers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,11 +12,11 @@ namespace ProvueCLI.Processors.Implementations {
 
 		private readonly ILogger m_logger;
 
-		private readonly IServiceProvider m_serviceProvider;
+		private readonly IFileProcessorFactory m_fileProcessorFactory;
 
-		public FolderProcessor ( ILogger logger , IServiceProvider serviceProvider ) {
+		public FolderProcessor ( ILogger logger , IFileProcessorFactory fileProcessorFactory ) {
 			m_logger = logger ?? throw new ArgumentNullException ( nameof ( logger ) );
-			m_serviceProvider = serviceProvider ?? throw new ArgumentNullException ( nameof ( serviceProvider ) );
+			m_fileProcessorFactory = fileProcessorFactory ?? throw new ArgumentNullException ( nameof ( fileProcessorFactory ) );
 		}
 
 		public async Task ProcessFiles ( string sourceFolder , string targetFolder ) {
@@ -61,7 +60,7 @@ namespace ProvueCLI.Processors.Implementations {
 				);
 			foreach ( var file in files ) {
 				var fileName = Path.GetFileName ( file );
-				var fileProcessor = FileProcessorFactoryMethod ( fileName );
+				var fileProcessor = m_fileProcessorFactory.CreateFileProcessorByExtension ( Path.GetExtension ( fileName ) );
 				if ( fileProcessor == null ) continue;
 
 				m_logger.Log ( $"File is processing {relativeFolder} {fileName}..." );
@@ -69,27 +68,6 @@ namespace ProvueCLI.Processors.Implementations {
 			}
 
 			return fullPath;
-		}
-
-		private IFileProcessor? FileProcessorFactoryMethod ( string fileName ) {
-			var extension = Path.GetExtension ( fileName );
-			IFileProcessor? processor = null;
-			switch ( extension ) {
-				case ".vue":
-					processor = m_serviceProvider.GetService<IComponentFileProcessor> ();
-					break;
-				case ".html":
-					processor = m_serviceProvider.GetService<IHtmlFileProcessor> ();
-					break;
-				case ".js":
-					processor = m_serviceProvider.GetService<IScriptFileProcessor> ();
-					break;
-				case ".css":
-					processor = m_serviceProvider.GetService<IStyleFileProcessor> ();
-					break;
-			}
-
-			return processor;
 		}
 
 	}
