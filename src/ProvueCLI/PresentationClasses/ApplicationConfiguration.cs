@@ -9,6 +9,8 @@
 
 		public string BuildFolder { get; set; } = "";
 
+		public string WebServerFolder { get; set; } = "";
+
 		public bool IsRunDeveloplementServer { get; set; } = false;
 
 		public int WebServerPort { get; set; } = 8080;

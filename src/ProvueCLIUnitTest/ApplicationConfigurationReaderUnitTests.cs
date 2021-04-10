@@ -48,7 +48,7 @@ namespace ProvueCLIUnitTest {
 			// arrange
 			var fakeLogger = A.Fake<ILogger> ();
 			var reader = new ApplicationConfigurationReader ( fakeLogger );
-			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\builder" , ReleaseFolder = @"c:\test\source\release" , SourceFolder = @"c:\test\source" };
+			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\builder" , ReleaseFolder = @"c:\test\source\release" , SourceFolder = @"c:\test\source", WebServerFolder = @"c:\test\source" };
 
 			// act
 			var configuration = await reader.ReadConfiguration ( new List<string> { @"sourcefolder:c:\test\source", @"buildfolder:c:\builder" } );
@@ -63,10 +63,25 @@ namespace ProvueCLIUnitTest {
 			// arrange
 			var fakeLogger = A.Fake<ILogger> ();
 			var reader = new ApplicationConfigurationReader ( fakeLogger );
-			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build" , ReleaseFolder = @"c:\release" , SourceFolder = @"c:\test\source" };
+			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build" , ReleaseFolder = @"c:\release" , SourceFolder = @"c:\test\source" , WebServerFolder = @"c:\test\source" };
 
 			// act
 			var configuration = await reader.ReadConfiguration ( new List<string> { @"sourcefolder:c:\test\source" , @"releasefolder:c:\release" } );
+
+			// assert
+			Assert.Equal ( testConfiguration , configuration );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_SourceFolderArgument_And_WebServerFolder () {
+			// arrange
+			var fakeLogger = A.Fake<ILogger> ();
+			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build" , ReleaseFolder = @"c:\test\source\release" , SourceFolder = @"c:\test\source" , WebServerFolder = @"c:\test\server" };
+
+			// act
+			var configuration = await reader.ReadConfiguration ( new List<string> { @"sourcefolder:c:\test\source" , @"serverfolder:c:\test\server" } );
 
 			// assert
 			Assert.Equal ( testConfiguration , configuration );
@@ -138,6 +153,21 @@ namespace ProvueCLIUnitTest {
 					var configuration = await reader.ReadConfiguration ( new List<string> { @"port:" + port } );
 				}
 			);
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_WebServerFolder () {
+			// arrange
+			var fakeLogger = A.Fake<ILogger> ();
+			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var testConfiguration = new ApplicationConfiguration { WebServerFolder = @"C:\nega\nebulus" };
+
+			// act
+			var configuration = await reader.ReadConfiguration ( new List<string> { @"serverfolder:C:\nega\nebulus" } );
+
+			// assert
+			Assert.Equal ( testConfiguration , configuration );
 		}
 
 	}

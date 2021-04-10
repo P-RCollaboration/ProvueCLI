@@ -11,7 +11,7 @@ namespace ProvueCLI.Processors.Implementations {
 	/// <summary>
 	/// Process .vue files.
 	/// </summary>
-	public class ComponentProcessor : IFileProcessor {
+	public class ComponentFileProcessor : IComponentFileProcessor {
 
 		private readonly IScriptProcessor m_scriptProcessor;
 
@@ -21,7 +21,7 @@ namespace ProvueCLI.Processors.Implementations {
 
 		private readonly ILogger m_logger;
 
-		public ComponentProcessor ( IScriptProcessor scriptProcessor , IStyleProcessor styleProcessor , ITemplateProcessor templateProcessor , ILogger logger ) {
+		public ComponentFileProcessor ( IScriptProcessor scriptProcessor , IStyleProcessor styleProcessor , ITemplateProcessor templateProcessor , ILogger logger ) {
 			m_scriptProcessor = scriptProcessor ?? throw new ArgumentNullException ( nameof ( scriptProcessor ) );
 			m_styleProcessor = styleProcessor ?? throw new ArgumentNullException ( nameof ( styleProcessor ) );
 			m_templateProcessor = templateProcessor ?? throw new ArgumentNullException ( nameof ( templateProcessor ) );

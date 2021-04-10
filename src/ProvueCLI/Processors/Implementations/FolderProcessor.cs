@@ -1,4 +1,5 @@
-﻿using ProvueCLI.Loggers;
+﻿using Microsoft.Extensions.DependencyInjection;
+using ProvueCLI.Loggers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,11 +13,11 @@ namespace ProvueCLI.Processors.Implementations {
 
 		private readonly ILogger m_logger;
 
-		private readonly IFileProcessor m_fileProcessor;
+		private readonly IServiceProvider m_serviceProvider;
 
-		public FolderProcessor ( ILogger logger , IFileProcessor fileProcessor ) {
+		public FolderProcessor ( ILogger logger , IServiceProvider serviceProvider ) {
 			m_logger = logger ?? throw new ArgumentNullException ( nameof ( logger ) );
-			m_fileProcessor = fileProcessor ?? throw new ArgumentNullException ( nameof ( fileProcessor ) );
+			m_serviceProvider = serviceProvider ?? throw new ArgumentNullException ( nameof ( serviceProvider ) );
 		}
 
 		public async Task ProcessFiles ( string sourceFolder , string targetFolder ) {
@@ -51,15 +52,46 @@ namespace ProvueCLI.Processors.Implementations {
 		private async Task<string> ProcessFilesInFolder ( string sourceFolder , string targetFolder , IEnumerable<string> pathSegments ) {
 			var relativeFolder = string.Join ( '/' , pathSegments );
 			var fullPath = Path.Combine ( sourceFolder , relativeFolder );
-			var files = Directory.GetFiles ( fullPath , "*.vue" );
+			var files = Directory.EnumerateFiles ( fullPath , "*.*" , SearchOption.TopDirectoryOnly )
+				.Where (
+					a => a.EndsWith ( ".vue" ) ||
+					a.EndsWith ( ".html" ) ||
+					a.EndsWith ( ".js" ) ||
+					a.EndsWith ( ".css" )
+				);
 			foreach ( var file in files ) {
 				var fileName = Path.GetFileName ( file );
+				var fileProcessor = FileProcessorFactoryMethod ( fileName );
+				if ( fileProcessor == null ) continue;
+
 				m_logger.Log ( $"File is processing {relativeFolder} {fileName}..." );
-				await m_fileProcessor.Process ( Path.Combine ( relativeFolder , fileName ) , sourceFolder , targetFolder );
+				await fileProcessor.Process ( Path.Combine ( relativeFolder , fileName ) , sourceFolder , targetFolder );
 			}
 
 			return fullPath;
 		}
+
+		private IFileProcessor? FileProcessorFactoryMethod ( string fileName ) {
+			var extension = Path.GetExtension ( fileName );
+			IFileProcessor? processor = null;
+			switch ( extension ) {
+				case ".vue":
+					processor = m_serviceProvider.GetService<IComponentFileProcessor> ();
+					break;
+				case ".html":
+					processor = m_serviceProvider.GetService<IHtmlFileProcessor> ();
+					break;
+				case ".js":
+					processor = m_serviceProvider.GetService<IScriptFileProcessor> ();
+					break;
+				case ".css":
+					processor = m_serviceProvider.GetService<IStyleFileProcessor> ();
+					break;
+			}
+
+			return processor;
+		}
+
 	}
 
 }

@@ -19,6 +19,8 @@ namespace ProvueCLI.Configuration {
 
 		private const string BuildFolderArgument = "buildfolder";
 
+		private const string WebServerFolderArgument = "serverfolder";
+
 		private const string RunDeveloplementServer = "run";
 
 		private const string WebServerPort = "port";
@@ -28,7 +30,7 @@ namespace ProvueCLI.Configuration {
 		private const string ReleaseFolder = "releasefolder";
 
 		private const string BuildRelease = "buildrelease";
-		
+
 		private readonly ILogger m_logger;
 
 		public ApplicationConfigurationReader ( ILogger logger ) {
@@ -82,9 +84,15 @@ namespace ProvueCLI.Configuration {
 					return ParseReleaseFolder ( argumentValue , applicationConfiguration );
 				case var buildRelease when MemoryExtensions.Equals ( buildRelease , BuildRelease , StringComparison.Ordinal ):
 					return ParseBuildRelease ( argumentValue , applicationConfiguration );
+				case var webServerFolderArgument when MemoryExtensions.Equals ( webServerFolderArgument , WebServerFolderArgument , StringComparison.Ordinal ):
+					return ParseWebServerFolder ( argumentValue , applicationConfiguration );
 			}
 
 			return applicationConfiguration;
+		}
+
+		private ApplicationConfiguration ParseWebServerFolder ( ReadOnlySpan<char> argumentValue , ApplicationConfiguration applicationConfiguration ) {
+			return applicationConfiguration with { WebServerFolder = argumentValue.ToString () };
 		}
 
 		private ApplicationConfiguration ParseBuildRelease ( ReadOnlySpan<char> argumentValue , ApplicationConfiguration applicationConfiguration ) {
@@ -96,7 +104,7 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private ApplicationConfiguration ParseWebServerPort ( ReadOnlySpan<char> value , ApplicationConfiguration applicationConfiguration ) {
-			if (value.Length == 0) {
+			if ( value.Length == 0 ) {
 				Console.WriteLine ( $"Port must be specified! Format port:<number>. Example port:8080." );
 				throw new ArgumentException ( nameof ( value ) );
 			}
@@ -124,12 +132,13 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private ApplicationConfiguration ParseSourceFolder ( ReadOnlySpan<char> value , ApplicationConfiguration applicationConfiguration ) {
-			if ( string.IsNullOrEmpty ( applicationConfiguration.BuildFolder ) && string.IsNullOrEmpty ( applicationConfiguration.ReleaseFolder ) ) {
+			if ( string.IsNullOrEmpty ( applicationConfiguration.BuildFolder ) && string.IsNullOrEmpty ( applicationConfiguration.ReleaseFolder ) && string.IsNullOrEmpty ( applicationConfiguration.WebServerFolder ) ) {
 				return applicationConfiguration with
 				{
 					BuildFolder = Path.Combine ( value.ToString () , "build" ) ,
 					ReleaseFolder = Path.Combine ( value.ToString () , "release" ) ,
-					SourceFolder = value.ToString ()
+					SourceFolder = value.ToString () ,
+					WebServerFolder = value.ToString ()
 				};
 			}
 
@@ -147,6 +156,15 @@ namespace ProvueCLI.Configuration {
 				return applicationConfiguration with
 				{
 					BuildFolder = Path.Combine ( value.ToString () , "release" ) ,
+					SourceFolder = value.ToString ()
+				};
+			}
+
+			if ( string.IsNullOrEmpty ( applicationConfiguration.WebServerFolder ) ) {
+
+				return applicationConfiguration with
+				{
+					WebServerFolder = value.ToString () ,
 					SourceFolder = value.ToString ()
 				};
 			}

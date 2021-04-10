@@ -9,6 +9,7 @@ using ProvueCLI.Loggers;
 using ProvueCLI.Loggers.Implementations;
 using ProvueCLI.Processors;
 using ProvueCLI.Processors.Implementations;
+using System.IO;
 
 namespace ProvueCLI {
 
@@ -21,7 +22,10 @@ namespace ProvueCLI {
 			services.AddTransient<IStyleProcessor , StyleProcessor> ();
 			services.AddTransient<ILogger , ConsoleLogger> ();
 			services.AddTransient<IFolderProcessor , FolderProcessor> ();
-			services.AddTransient<IFileProcessor , ComponentProcessor> ();
+			services.AddTransient<IComponentFileProcessor , ComponentFileProcessor> ();
+			services.AddTransient<IHtmlFileProcessor , HtmlFileProcessor> ();
+			services.AddTransient<IStyleFileProcessor , StyleFileProcessor> ();
+			services.AddTransient<IScriptFileProcessor , ScriptFileProcessor> ();
 		}
 
 		public void Configure ( IApplicationBuilder app , IWebHostEnvironment env ) {
@@ -34,19 +38,24 @@ namespace ProvueCLI {
 			app.UseStaticFiles (
 				new StaticFileOptions () {
 					FileProvider = new PhysicalFileProvider (
-						Program.ApplicationConfiguration.BuildFolder
+						Path.GetFullPath ( Program.ApplicationConfiguration.WebServerFolder )
 					) ,
-					RequestPath = new PathString ( "/" ) ,
+					RequestPath = new PathString ( "/dir" ) ,
 					ServeUnknownFileTypes = true
 				}
 			);
 			app.UseRouting ();
 
-			/*app.UseEndpoints ( endpoints => {
-				endpoints.MapGet ( "/" , async context => {
-					await context.Response.WriteAsync ( "Provue development server" );
-				} );
-			} );*/
+			app.UseEndpoints (
+				endpoints => {
+					endpoints.MapGet (
+						"/" ,
+						async context => {
+							await context.Response.WriteAsync ( "Provue development server" );
+						}
+					);
+				}
+			);
 		}
 	}
 }

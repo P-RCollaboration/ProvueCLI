@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Processors\Implementations\FolderProcessor.cs~RF42ea8f08.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.13" />
     <PackageReference Include="NUglify" Version="1.13.8" />
     <PackageReference Include="SharpScss" Version="2.0.0" />
