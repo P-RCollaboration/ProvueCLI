@@ -101,7 +101,7 @@ namespace ProvueCLI.Processors.Implementations {
 		private (int startIndex, int endIndex) GetContentPart ( string content , string tag ) {
 			var closeTag = $"</{tag}>";
 			var startIndex = content.IndexOf ( $"<{tag}>" , StringComparison.OrdinalIgnoreCase );
-			var endIndex = content.IndexOf ( closeTag , StringComparison.OrdinalIgnoreCase ) + closeTag.Length;
+			var endIndex = content.LastIndexOf ( closeTag , StringComparison.OrdinalIgnoreCase ) + closeTag.Length;
 
 			return (startIndex, endIndex);
 		}
