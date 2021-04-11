@@ -2,8 +2,8 @@
 using ProvueCLI.Processors;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ProvueCLI.ChangesWatcher.Implementations {
@@ -21,7 +21,7 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 
 		private string m_targetFolder = "";
 
-		private ConcurrentDictionary<string , bool> m_filesInProcess = new ConcurrentDictionary<string , bool> ();
+		private SemaphoreSlim m_semaphore = new SemaphoreSlim ( 1 , 1 );
 
 		public FileChangesWatcher ( IFileProcessorFactory fileProcessorFactory , ILogger logger ) {
 			m_fileProcessorFactory = fileProcessorFactory ?? throw new ArgumentNullException ( nameof ( fileProcessorFactory ) );
@@ -69,11 +69,10 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 		}
 
 		private async Task UpdateFile ( string fullPath ) {
-			if ( m_filesInProcess.ContainsKey ( fullPath ) ) return;
-
-			if ( !m_filesInProcess.TryAdd ( fullPath , true ) ) return;
+			await m_semaphore.WaitAsync ();
 
 			try {
+				await Task.Delay ( 100 ); // I added this because events fires twice on changes and I don't understand why it is happened
 				var fileProvider = m_fileProcessorFactory.CreateFileProcessorByExtension ( Path.GetExtension ( fullPath ) );
 				if ( fileProvider == null ) return;
 
@@ -86,7 +85,7 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 			} catch {
 				m_logger.Log ( $"File is processed with errors!" );
 			} finally {
-				m_filesInProcess.TryRemove ( new KeyValuePair<string , bool> ( fullPath , true ) );
+				m_semaphore.Release ();
 			}
 		}
 

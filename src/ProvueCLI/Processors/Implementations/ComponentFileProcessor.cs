@@ -34,8 +34,9 @@ namespace ProvueCLI.Processors.Implementations {
 			if ( directory == null ) return;
 
 			Directory.CreateDirectory ( Path.Combine ( targetFolder , directory ) );
-			var content = File.ReadAllText ( Path.Combine ( sourceFolder , fileName ) );
-
+			using var file = File.Open ( Path.Combine ( sourceFolder , fileName ) , FileMode.Open , FileAccess.Read , FileShare.Read );
+			using var reader = new StreamReader ( file );
+			var content = await reader.ReadToEndAsync ();
 
 			var componentNamespaceMatch = Regex.Match ( content , @"\<component-namespace\>.*\<\/component-namespace\>" , RegexOptions.IgnoreCase );
 			var componentNamespace = "";
