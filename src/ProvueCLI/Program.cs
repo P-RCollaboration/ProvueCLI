@@ -5,6 +5,7 @@ using ProvueCLI.Configuration;
 using ProvueCLI.Loggers.Implementations;
 using ProvueCLI.PresentationClasses;
 using ProvueCLI.Processors;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace ProvueCLI {
@@ -16,20 +17,21 @@ namespace ProvueCLI {
 		public static ApplicationConfiguration ApplicationConfiguration => m_applicationConfiguration;
 
 		public static async Task Main ( string[] args ) {
-			m_applicationConfiguration = await new ApplicationConfigurationReader ( new ConsoleLogger () ).ReadConfiguration ( args );
+			var logger = new ConsoleLogger ();
+			m_applicationConfiguration = await new ApplicationConfigurationReader ( logger ).ReadConfiguration ( args );
 
-			if ( !m_applicationConfiguration.IsRunDeveloplementServer ) {
-				var serviceCollection = new ServiceCollection ();
-				new Startup ().ConfigureServices ( serviceCollection );
-				var serviceProvider = serviceCollection.BuildServiceProvider ();
+			var serviceCollection = new ServiceCollection ();
+			new Startup ().ConfigureServices ( serviceCollection );
+			var serviceProvider = serviceCollection.BuildServiceProvider ();
 
-				var folderProcessor = serviceProvider.GetService<IFolderProcessor> ();
-				if ( folderProcessor != null ) await folderProcessor.ProcessFiles ( m_applicationConfiguration.SourceFolder , m_applicationConfiguration.BuildFolder );
+			var folderProcessor = serviceProvider.GetService<IFolderProcessor> ();
+			if ( folderProcessor != null ) await folderProcessor.ProcessFiles ( m_applicationConfiguration.SourceFolder , m_applicationConfiguration.BuildFolder );
 
+			if ( !Directory.Exists ( m_applicationConfiguration.WebServerFolder ) ) {
+				logger.Log ( $"Directory {m_applicationConfiguration.WebServerFolder} not exists! development server can runned!" );
 				return;
 			}
-
-			CreateHostBuilder ( args ).Build ().Run ();
+			if ( m_applicationConfiguration.IsRunDeveloplementServer ) CreateHostBuilder ( args ).Build ().Run ();
 		}
 
 		public static IHostBuilder CreateHostBuilder ( string[] args ) =>

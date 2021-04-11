@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using ProvueCLI.ChangesWatcher;
+using ProvueCLI.ChangesWatcher.Implementations;
 using ProvueCLI.Configuration;
 using ProvueCLI.Loggers;
 using ProvueCLI.Loggers.Implementations;
@@ -26,9 +28,11 @@ namespace ProvueCLI {
 			services.AddTransient<IHtmlFileProcessor , HtmlFileProcessor> ();
 			services.AddTransient<IStyleFileProcessor , StyleFileProcessor> ();
 			services.AddTransient<IScriptFileProcessor , ScriptFileProcessor> ();
+			services.AddSingleton<IFileChangesWatcher , FileChangesWatcher> ();
+			services.AddTransient<IFileProcessorFactory , FileProcessorFactory> ();
 		}
 
-		public void Configure ( IApplicationBuilder app , IWebHostEnvironment env ) {
+		public void Configure ( IApplicationBuilder app , IWebHostEnvironment env , IFileChangesWatcher fileChangesWatcher , ILogger logger ) {
 			if ( env.IsDevelopment () ) app.UseDeveloperExceptionPage ();
 
 			DefaultFilesOptions options = new DefaultFilesOptions ();
@@ -56,6 +60,8 @@ namespace ProvueCLI {
 					);
 				}
 			);
+
+			fileChangesWatcher.WatchDirectory ( Program.ApplicationConfiguration.SourceFolder , Program.ApplicationConfiguration.BuildFolder );
 		}
 	}
 }

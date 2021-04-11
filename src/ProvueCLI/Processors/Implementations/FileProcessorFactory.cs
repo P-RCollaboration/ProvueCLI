@@ -8,9 +8,7 @@ namespace ProvueCLI.Processors.Implementations {
 		
 		private readonly IServiceProvider m_serviceProvider;
 
-		public FileProcessorFactory (IServiceProvider serviceProvider) {
-			m_serviceProvider = serviceProvider;
-		}
+		public FileProcessorFactory (IServiceProvider serviceProvider) => m_serviceProvider = serviceProvider;
 
 		/// <inheritdoc cref="IFileProcessorFactory.CreateFileProcessorByExtension(string)"/>
 		public IFileProcessor? CreateFileProcessorByExtension ( string extension ) {

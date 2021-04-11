@@ -1,4 +1,4 @@
-﻿namespace ProvueCLI.FileChangesWatcher {
+﻿namespace ProvueCLI.ChangesWatcher {
 
 	/// <summary>
 	/// Watcher for changes
