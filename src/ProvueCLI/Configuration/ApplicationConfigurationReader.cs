@@ -92,7 +92,7 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private ApplicationConfiguration ParseWebServerFolder ( ReadOnlySpan<char> argumentValue , ApplicationConfiguration applicationConfiguration ) {
-			return applicationConfiguration with { WebServerFolder = argumentValue.ToString () };
+			return applicationConfiguration with { WebServerFolder = Path.GetFullPath ( argumentValue.ToString () ) };
 		}
 
 		private ApplicationConfiguration ParseBuildRelease ( ReadOnlySpan<char> argumentValue , ApplicationConfiguration applicationConfiguration ) {
@@ -100,7 +100,7 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private ApplicationConfiguration ParseReleaseFolder ( ReadOnlySpan<char> argumentValue , ApplicationConfiguration applicationConfiguration ) {
-			return applicationConfiguration with { ReleaseFolder = argumentValue.ToString () };
+			return applicationConfiguration with { ReleaseFolder = Path.GetFullPath ( argumentValue.ToString () ) };
 		}
 
 		private ApplicationConfiguration ParseWebServerPort ( ReadOnlySpan<char> value , ApplicationConfiguration applicationConfiguration ) {
@@ -135,10 +135,10 @@ namespace ProvueCLI.Configuration {
 			if ( string.IsNullOrEmpty ( applicationConfiguration.BuildFolder ) && string.IsNullOrEmpty ( applicationConfiguration.ReleaseFolder ) && string.IsNullOrEmpty ( applicationConfiguration.WebServerFolder ) ) {
 				return applicationConfiguration with
 				{
-					BuildFolder = Path.Combine ( value.ToString () , "build" ) ,
-					ReleaseFolder = Path.Combine ( value.ToString () , "release" ) ,
-					SourceFolder = value.ToString () ,
-					WebServerFolder = value.ToString ()
+					BuildFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "build" ) ) ,
+					ReleaseFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "release" ) ) ,
+					SourceFolder = Path.GetFullPath ( value.ToString () ) ,
+					WebServerFolder = Path.GetFullPath ( value.ToString () )
 				};
 			}
 
@@ -146,8 +146,8 @@ namespace ProvueCLI.Configuration {
 
 				return applicationConfiguration with
 				{
-					BuildFolder = Path.Combine ( value.ToString () , "build" ) ,
-					SourceFolder = value.ToString ()
+					BuildFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "build" ) ) ,
+					SourceFolder = Path.GetFullPath ( value.ToString () )
 				};
 			}
 
@@ -155,8 +155,8 @@ namespace ProvueCLI.Configuration {
 
 				return applicationConfiguration with
 				{
-					BuildFolder = Path.Combine ( value.ToString () , "release" ) ,
-					SourceFolder = value.ToString ()
+					BuildFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "release" ) ) ,
+					SourceFolder = Path.GetFullPath ( value.ToString () )
 				};
 			}
 
@@ -164,12 +164,12 @@ namespace ProvueCLI.Configuration {
 
 				return applicationConfiguration with
 				{
-					WebServerFolder = value.ToString () ,
-					SourceFolder = value.ToString ()
+					WebServerFolder = Path.GetFullPath ( value.ToString () ) ,
+					SourceFolder = Path.GetFullPath ( value.ToString () )
 				};
 			}
 
-			return applicationConfiguration with { SourceFolder = value.ToString () };
+			return applicationConfiguration with { SourceFolder = Path.GetFullPath ( value.ToString () ) };
 		}
 
 		private ApplicationConfiguration ParseBuildFolder ( ReadOnlySpan<char> value , ApplicationConfiguration applicationConfiguration ) {
@@ -177,10 +177,22 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private async Task<ApplicationConfiguration> ReadConfigurationFile ( string configurationFile ) {
-			using ( var file = File.OpenRead ( configurationFile ) ) {
-				var configuration = await JsonSerializer.DeserializeAsync<ApplicationConfiguration> ( file );
-				return configuration ?? new ApplicationConfiguration ();
-			}
+			using var file = File.OpenRead ( configurationFile );
+			var configuration = await JsonSerializer.DeserializeAsync<ApplicationConfiguration> (
+				file ,
+				new JsonSerializerOptions {
+					PropertyNameCaseInsensitive = true
+				}
+			);
+
+			configuration ??= new ApplicationConfiguration ();
+
+			if ( !string.IsNullOrEmpty ( configuration.BuildFolder ) ) configuration = configuration with { BuildFolder = Path.GetFullPath ( configuration.BuildFolder ) };
+			if ( !string.IsNullOrEmpty ( configuration.WebServerFolder ) ) configuration = configuration with { WebServerFolder = Path.GetFullPath ( configuration.WebServerFolder ) };
+			if ( !string.IsNullOrEmpty ( configuration.ReleaseFolder ) ) configuration = configuration with { ReleaseFolder = Path.GetFullPath ( configuration.ReleaseFolder ) };
+			if ( !string.IsNullOrEmpty ( configuration.SourceFolder ) ) configuration = configuration with { SourceFolder = Path.GetFullPath ( configuration.SourceFolder ) };
+
+			return configuration;
 		}
 
 	}
