@@ -33,7 +33,7 @@ namespace ProvueCLIUnitTest {
 			// arrange
 			var fakeLogger = A.Fake<ILogger> ();
 			var reader = new ApplicationConfigurationReader ( fakeLogger );
-			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build", ReleaseFolder = @"c:\test\source\release", SourceFolder = @"c:\test\source" };
+			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build", ReleaseFolder = @"c:\test\source\release", SourceFolder = @"c:\test\source", WebServerFolder = @"c:\test\source" };
 
 			// act
 			var configuration = await reader.ReadConfiguration ( new List<string> { @"sourcefolder:c:\test\source" } );
