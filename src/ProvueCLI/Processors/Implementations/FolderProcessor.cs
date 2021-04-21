@@ -36,6 +36,7 @@ namespace ProvueCLI.Processors.Implementations {
 
 		private async Task ProcessFolder ( string sourceFolder , string targetFolder , IEnumerable<string> pathSegments ) {
 			string fullPath = await ProcessFilesInFolder ( sourceFolder , targetFolder , pathSegments );
+			if ( fullPath == "" ) return;
 
 			var directories = Directory.GetDirectories ( fullPath );
 			foreach ( var directory in directories ) {
@@ -51,6 +52,8 @@ namespace ProvueCLI.Processors.Implementations {
 		private async Task<string> ProcessFilesInFolder ( string sourceFolder , string targetFolder , IEnumerable<string> pathSegments ) {
 			var relativeFolder = string.Join ( '/' , pathSegments );
 			var fullPath = Path.Combine ( sourceFolder , relativeFolder );
+			if ( fullPath == targetFolder ) return ""; // prevent forever recursive for target folder
+
 			var files = Directory.EnumerateFiles ( fullPath , "*.*" , SearchOption.TopDirectoryOnly )
 				.Where (
 					a => a.EndsWith ( ".vue" ) ||

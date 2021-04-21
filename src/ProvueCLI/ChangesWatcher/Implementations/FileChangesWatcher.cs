@@ -1,7 +1,6 @@
 ﻿using ProvueCLI.Loggers;
 using ProvueCLI.Processors;
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,15 +68,16 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 		}
 
 		private async Task UpdateFile ( string fullPath ) {
-			await m_semaphore.WaitAsync ();
+			//TODO: remake on synchron queue
+			if ( !await m_semaphore.WaitAsync ( 100 ) ) return;
 
 			try {
-				await Task.Delay ( 100 ); // I added this because events fires twice on changes and I don't understand why it is happened
+				await Task.Delay ( 300 ); // I added this because events fires twice on changes and I don't understand why it is happened
 				var fileProvider = m_fileProcessorFactory.CreateFileProcessorByExtension ( Path.GetExtension ( fullPath ) );
 				if ( fileProvider == null ) return;
 
 				var relativeFilePath = fullPath.Replace ( m_sourceFolder , "" );
-				if ( relativeFilePath.StartsWith ( Path.DirectorySeparatorChar ) ) relativeFilePath = relativeFilePath.Substring ( 1 );
+				if ( relativeFilePath.StartsWith ( Path.DirectorySeparatorChar ) ) relativeFilePath = relativeFilePath[1..];
 
 				m_logger.Log ( $"File is processing {relativeFilePath}..." );
 

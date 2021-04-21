@@ -17,6 +17,7 @@
     },
     "ProvueCLI": {
       "commandName": "Project",
+      "commandLineArgs": "run",
       "workingDirectory": "D:\\work\\Repositories\\PRCollaborations\\corecomponents\\CoreComponents",
       "launchBrowser": true,
       "environmentVariables": {
