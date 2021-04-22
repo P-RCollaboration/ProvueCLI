@@ -1,9 +1,11 @@
 using FakeItEasy;
 using ProvueCLI.Configuration;
+using ProvueCLI.FileServices;
 using ProvueCLI.Loggers;
 using ProvueCLI.PresentationClasses;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -16,8 +18,7 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_EmptyArguments () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 			var emptyConfiguration = new ApplicationConfiguration ();
 
 			// act
@@ -29,11 +30,34 @@ namespace ProvueCLIUnitTest {
 
 		[Fact]
 		[Trait ( "Category" , "Unit" )]
+		public void Constructor_Throw_Logger_Null () {
+			// assert
+			Assert.Throws<ArgumentNullException> (
+				() => {
+					// arrange and act
+					var reader = new ApplicationConfigurationReader ( null , A.Fake<IFileService> () );
+				}
+			);
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public void Constructor_Throw_FileService_Null () {
+			// assert
+			Assert.Throws<ArgumentNullException> (
+				() => {
+					// arrange and act
+					var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , null );
+				}
+			);
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_SourceFolderArgument_Single () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
-			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build", ReleaseFolder = @"c:\test\source\release", SourceFolder = @"c:\test\source", WebServerFolder = @"c:\test\source" };
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
+			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build" , ReleaseFolder = @"c:\test\source\release" , SourceFolder = @"c:\test\source" , WebServerFolder = @"c:\test\source" };
 
 			// act
 			var configuration = await reader.ReadConfiguration ( new List<string> { @"sourcefolder:c:\test\source" } );
@@ -46,12 +70,11 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_SourceFolderArgument_And_BuildFolder () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
-			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\builder" , ReleaseFolder = @"c:\test\source\release" , SourceFolder = @"c:\test\source", WebServerFolder = @"c:\test\source" };
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
+			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\builder" , ReleaseFolder = @"c:\test\source\release" , SourceFolder = @"c:\test\source" , WebServerFolder = @"c:\test\source" };
 
 			// act
-			var configuration = await reader.ReadConfiguration ( new List<string> { @"sourcefolder:c:\test\source", @"buildfolder:c:\builder" } );
+			var configuration = await reader.ReadConfiguration ( new List<string> { @"sourcefolder:c:\test\source" , @"buildfolder:c:\builder" } );
 
 			// assert
 			Assert.Equal ( testConfiguration , configuration );
@@ -61,8 +84,7 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_SourceFolderArgument_And_ReleaseFolder () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build" , ReleaseFolder = @"c:\release" , SourceFolder = @"c:\test\source" , WebServerFolder = @"c:\test\source" };
 
 			// act
@@ -76,8 +98,7 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_SourceFolderArgument_And_WebServerFolder () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 			var testConfiguration = new ApplicationConfiguration { BuildFolder = @"c:\test\source\build" , ReleaseFolder = @"c:\test\source\release" , SourceFolder = @"c:\test\source" , WebServerFolder = @"c:\test\server" };
 
 			// act
@@ -91,8 +112,7 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_SourceFolderArgument_And_BuildFolder_And_ReleaseFolder () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 			var testConfiguration = new ApplicationConfiguration { IsRunDeveloplementServer = true };
 
 			// act
@@ -106,8 +126,7 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_WebServerHost () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 			var testConfiguration = new ApplicationConfiguration { WebServerHost = "127.0.0.1" };
 
 			// act
@@ -121,8 +140,7 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_WebServerPort () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 			var testConfiguration = new ApplicationConfiguration { WebServerPort = 8080 };
 
 			// act
@@ -141,10 +159,9 @@ namespace ProvueCLIUnitTest {
 		[InlineData ( "65545" )]
 		[InlineData ( "74500" )]
 		[Trait ( "Category" , "Unit" )]
-		public async Task ReadConfiguration_WebServerPort_Throw_OutOfRange (string port) {
+		public async Task ReadConfiguration_WebServerPort_Throw_OutOfRange ( string port ) {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 
 			// assert
 			await Assert.ThrowsAsync<ArgumentException> (
@@ -159,8 +176,7 @@ namespace ProvueCLIUnitTest {
 		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_WebServerFolder () {
 			// arrange
-			var fakeLogger = A.Fake<ILogger> ();
-			var reader = new ApplicationConfigurationReader ( fakeLogger );
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
 			var testConfiguration = new ApplicationConfiguration { WebServerFolder = @"C:\nega\nebulus" };
 
 			// act
@@ -168,6 +184,43 @@ namespace ProvueCLIUnitTest {
 
 			// assert
 			Assert.Equal ( testConfiguration , configuration );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_ReadFromFile () {
+			// arrange
+			var fileService = A.Fake<IFileService> ();
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , fileService );
+			var fileName = Path.Combine ( Directory.GetCurrentDirectory () , "provue" );
+			var testConfiguration = new ApplicationConfiguration { WebServerFolder = @"C:\nega\nebulus" };
+			A.CallTo ( () => fileService.ReadJsonFileAsync<ApplicationConfiguration> ( fileName ) ).Returns ( Task.FromResult ( testConfiguration ) );
+			A.CallTo ( () => fileService.FileExists ( fileName ) ).Returns ( true );
+
+			// act
+			var configuration = await reader.ReadConfiguration ( Enumerable.Empty<string> () );
+
+			// assert
+			Assert.Equal ( testConfiguration , configuration );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_ReadFromFile_Overlap_CliArguments () {
+			// arrange
+			var fileService = A.Fake<IFileService> ();
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , fileService );
+			var fileName = Path.Combine ( Directory.GetCurrentDirectory () , "provue" );
+			var testConfiguration = new ApplicationConfiguration { WebServerFolder = @"C:\nega\nebulus" };
+			var overlapedConfiguration = new ApplicationConfiguration { WebServerFolder = @"C:\great\wall" };
+			A.CallTo ( () => fileService.ReadJsonFileAsync<ApplicationConfiguration> ( fileName ) ).Returns ( Task.FromResult ( testConfiguration ) );
+			A.CallTo ( () => fileService.FileExists ( fileName ) ).Returns ( true );
+
+			// act
+			var configuration = await reader.ReadConfiguration ( new List<string> { @"serverfolder:C:\great\wall" } );
+
+			// assert
+			Assert.Equal ( overlapedConfiguration , configuration );
 		}
 
 	}

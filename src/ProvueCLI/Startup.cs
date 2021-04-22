@@ -7,11 +7,13 @@ using Microsoft.Extensions.Hosting;
 using ProvueCLI.ChangesWatcher;
 using ProvueCLI.ChangesWatcher.Implementations;
 using ProvueCLI.Configuration;
+using ProvueCLI.FileServices;
 using ProvueCLI.Loggers;
 using ProvueCLI.Loggers.Implementations;
 using ProvueCLI.Processors;
 using ProvueCLI.Processors.Implementations;
 using System.IO;
+using ProvueCLI.FileServices.Implementations;
 
 namespace ProvueCLI {
 
@@ -30,6 +32,7 @@ namespace ProvueCLI {
 			services.AddTransient<IScriptFileProcessor , ScriptFileProcessor> ();
 			services.AddSingleton<IFileChangesWatcher , FileChangesWatcher> ();
 			services.AddTransient<IFileProcessorFactory , FileProcessorFactory> ();
+			services.AddTransient<IFileService , FileService> ();
 		}
 
 		public void Configure ( IApplicationBuilder app , IWebHostEnvironment env , IFileChangesWatcher fileChangesWatcher , ILogger logger ) {

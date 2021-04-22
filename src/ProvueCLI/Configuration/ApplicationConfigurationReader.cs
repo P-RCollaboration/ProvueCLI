@@ -1,9 +1,9 @@
-﻿using ProvueCLI.Loggers;
+﻿using ProvueCLI.FileServices;
+using ProvueCLI.Loggers;
 using ProvueCLI.PresentationClasses;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ProvueCLI.Configuration {
@@ -14,6 +14,8 @@ namespace ProvueCLI.Configuration {
 	public class ApplicationConfigurationReader {
 
 		private string m_mainDirectoryCommand = Directory.GetCurrentDirectory ();
+
+		private const string ConfigurationFileName = "provue";
 
 		private const string SourceFolderArgument = "sourcefolder";
 
@@ -33,15 +35,18 @@ namespace ProvueCLI.Configuration {
 
 		private readonly ILogger m_logger;
 
-		public ApplicationConfigurationReader ( ILogger logger ) {
-			m_logger = logger;
+		private readonly IFileService m_fileService;
+
+		public ApplicationConfigurationReader ( ILogger logger, IFileService fileService ) {
+			m_logger = logger ?? throw new ArgumentNullException ( nameof ( logger ) );
+			m_fileService = fileService ?? throw new ArgumentNullException ( nameof ( fileService ) );
 		}
 
 		public async Task<ApplicationConfiguration> ReadConfiguration ( IEnumerable<string> arguments ) {
 			ApplicationConfiguration configuration = new ();
-			var directoryConfigurationFile = Path.Combine ( m_mainDirectoryCommand , "provue" );
+			var directoryConfigurationFile = Path.Combine ( m_mainDirectoryCommand , ConfigurationFileName );
 
-			if ( File.Exists ( directoryConfigurationFile ) ) {
+			if ( m_fileService.FileExists ( directoryConfigurationFile ) ) {
 				try {
 					configuration = await ReadConfigurationFile ( directoryConfigurationFile );
 				} catch {
@@ -177,13 +182,7 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private async Task<ApplicationConfiguration> ReadConfigurationFile ( string configurationFile ) {
-			using var file = File.OpenRead ( configurationFile );
-			var configuration = await JsonSerializer.DeserializeAsync<ApplicationConfiguration> (
-				file ,
-				new JsonSerializerOptions {
-					PropertyNameCaseInsensitive = true
-				}
-			);
+			var configuration = await m_fileService.ReadJsonFileAsync<ApplicationConfiguration> ( configurationFile );
 
 			configuration ??= new ApplicationConfiguration ();
 
