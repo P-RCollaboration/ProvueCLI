@@ -26,6 +26,14 @@ namespace ProvueCLI.Processors.Implementations {
 				case ".css":
 					processor = m_serviceProvider.GetService<IStyleFileProcessor> ();
 					break;
+				case ".png":
+				case ".jpg":
+				case ".jpeg":
+				case ".gif":
+				case ".svg":
+				case ".webp":
+					processor = m_serviceProvider.GetService<IImageFileProcessor> ();
+					break;
 			}
 
 			return processor;

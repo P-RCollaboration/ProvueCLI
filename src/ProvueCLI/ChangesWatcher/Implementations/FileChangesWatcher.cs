@@ -1,9 +1,6 @@
 ﻿using ProvueCLI.Loggers;
-using ProvueCLI.Processors;
 using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ProvueCLI.ChangesWatcher.Implementations {
 
@@ -12,19 +9,13 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 
 		private FileSystemWatcher? m_fileSystemWatcher;
 
-		private readonly IFileProcessorFactory m_fileProcessorFactory;
-
 		private readonly ILogger m_logger;
 
-		private string m_sourceFolder = "";
+		private readonly IUpdateFileBackgroundService m_updateFileBackgroundService;
 
-		private string m_targetFolder = "";
-
-		private SemaphoreSlim m_semaphore = new SemaphoreSlim ( 1 , 1 );
-
-		public FileChangesWatcher ( IFileProcessorFactory fileProcessorFactory , ILogger logger ) {
-			m_fileProcessorFactory = fileProcessorFactory ?? throw new ArgumentNullException ( nameof ( fileProcessorFactory ) );
+		public FileChangesWatcher ( ILogger logger, IUpdateFileBackgroundService updateFileBackgroundService ) {
 			m_logger = logger ?? throw new ArgumentNullException ( nameof ( logger ) );
+			m_updateFileBackgroundService = updateFileBackgroundService ?? throw new ArgumentNullException ( nameof ( updateFileBackgroundService ) );
 		}
 
 		/// <inheritdoc cref="IFileChangesWatcher.WatchDirectory(string, string)" />
@@ -39,9 +30,6 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 
 			m_fileSystemWatcher = new FileSystemWatcher ( sourceFolder );
 
-			m_sourceFolder = sourceFolder;
-			m_targetFolder = targetFolder;
-
 			m_fileSystemWatcher.NotifyFilter = NotifyFilters.CreationTime
 				| NotifyFilters.DirectoryName
 				| NotifyFilters.FileName
@@ -55,39 +43,19 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 			m_fileSystemWatcher.EnableRaisingEvents = true;
 		}
 
-		private async void OnRenamed ( object sender , RenamedEventArgs e ) {
+		private void OnRenamed ( object sender , RenamedEventArgs e ) {
 			if ( !Path.HasExtension ( e.FullPath ) ) return;
 
-			await UpdateFile ( e.FullPath );
+			UpdateFile ( e.FullPath );
 		}
 
-		private async void OnChanged ( object sender , FileSystemEventArgs e ) {
+		private void OnChanged ( object sender , FileSystemEventArgs e ) {
 			if ( !Path.HasExtension ( e.FullPath ) ) return;
 
-			await UpdateFile ( e.FullPath );
+			UpdateFile ( e.FullPath );
 		}
 
-		private async Task UpdateFile ( string fullPath ) {
-			//TODO: remake on synchron queue
-			if ( !await m_semaphore.WaitAsync ( 100 ) ) return;
-
-			try {
-				await Task.Delay ( 300 ); // I added this because events fires twice on changes and I don't understand why it is happened
-				var fileProvider = m_fileProcessorFactory.CreateFileProcessorByExtension ( Path.GetExtension ( fullPath ) );
-				if ( fileProvider == null ) return;
-
-				var relativeFilePath = fullPath.Replace ( m_sourceFolder , "" );
-				if ( relativeFilePath.StartsWith ( Path.DirectorySeparatorChar ) ) relativeFilePath = relativeFilePath[1..];
-
-				m_logger.Log ( $"File is processing {relativeFilePath}..." );
-
-				await fileProvider.Process ( relativeFilePath , m_sourceFolder , m_targetFolder );
-			} catch {
-				m_logger.Log ( $"File is processed with errors!" );
-			} finally {
-				m_semaphore.Release ();
-			}
-		}
+		private void UpdateFile ( string fullPath ) => m_updateFileBackgroundService.Enqueue ( fullPath );
 
 	}
 

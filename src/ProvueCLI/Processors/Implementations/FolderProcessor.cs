@@ -59,7 +59,13 @@ namespace ProvueCLI.Processors.Implementations {
 					a => a.EndsWith ( ".vue" ) ||
 					a.EndsWith ( ".html" ) ||
 					a.EndsWith ( ".js" ) ||
-					a.EndsWith ( ".css" )
+					a.EndsWith ( ".css" ) ||
+					a.EndsWith ( ".png" ) ||
+					a.EndsWith ( ".jpg" ) ||
+					a.EndsWith ( ".jpeg" ) ||
+					a.EndsWith ( ".gif" ) ||
+					a.EndsWith ( ".svg" ) ||
+					a.EndsWith ( ".webp" )
 				);
 			foreach ( var file in files ) {
 				var fileName = Path.GetFileName ( file );

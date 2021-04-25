@@ -21,6 +21,13 @@
 
 		public bool BuildForRelease { get; set; } = false;
 
+		public bool IsEmpty () {
+			return string.IsNullOrEmpty ( SourceFolder ) &&
+				string.IsNullOrEmpty ( BuildFolder ) &&
+				string.IsNullOrEmpty ( WebServerFolder ) &&
+				string.IsNullOrEmpty ( ReleaseFolder );
+		}
+
 	}
 
 }
