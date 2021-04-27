@@ -38,7 +38,7 @@ namespace ProvueCLI.Processors.Implementations {
 			using var reader = new StreamReader ( file );
 			var content = await reader.ReadToEndAsync ();
 
-			var componentNamespaceMatch = Regex.Match ( content , @"\<component-namespace\>.*\<\/component-namespace\>" , RegexOptions.IgnoreCase );
+			var componentNamespaceMatch = Regex.Match ( content , @"\<component-namespace\>.*\<\/component-namespace\>" , RegexOptions.IgnoreCase | RegexOptions.Singleline );
 			var componentNamespace = "";
 			if ( componentNamespaceMatch != null && !string.IsNullOrEmpty ( componentNamespaceMatch.Value ) ) {
 				componentNamespace = componentNamespaceMatch.Value
