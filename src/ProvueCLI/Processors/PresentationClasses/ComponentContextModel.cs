@@ -6,11 +6,6 @@
 	public record ComponentContextModel {
 
 		/// <summary>
-		/// Component identifier.
-		/// </summary>
-		public string ComponentId { get; set; } = "";
-
-		/// <summary>
 		/// File name.
 		/// </summary>
 		public string FileName { get; set; } = "";

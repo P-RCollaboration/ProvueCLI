@@ -61,7 +61,6 @@ namespace ProvueCLI.Processors.Implementations {
 		private ComponentContextModel GetContext(string fileName , string componentNamespace) {
 			return new ComponentContextModel {
 				ComponentNamespace = componentNamespace ,
-				ComponentId = Guid.NewGuid().ToString() , //TODO: change to compute hash
 				FileName = fileName
 			};
 		}
