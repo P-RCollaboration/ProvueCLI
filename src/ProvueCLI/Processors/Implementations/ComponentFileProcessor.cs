@@ -21,88 +21,87 @@ namespace ProvueCLI.Processors.Implementations {
 
 		private readonly ILogger m_logger;
 
-		public ComponentFileProcessor ( IScriptProcessor scriptProcessor , IStyleProcessor styleProcessor , ITemplateProcessor templateProcessor , ILogger logger ) {
-			m_scriptProcessor = scriptProcessor ?? throw new ArgumentNullException ( nameof ( scriptProcessor ) );
-			m_styleProcessor = styleProcessor ?? throw new ArgumentNullException ( nameof ( styleProcessor ) );
-			m_templateProcessor = templateProcessor ?? throw new ArgumentNullException ( nameof ( templateProcessor ) );
-			m_logger = logger ?? throw new ArgumentNullException ( nameof ( logger ) );
+		public ComponentFileProcessor(IScriptProcessor scriptProcessor , IStyleProcessor styleProcessor , ITemplateProcessor templateProcessor , ILogger logger) {
+			m_scriptProcessor = scriptProcessor ?? throw new ArgumentNullException(nameof(scriptProcessor));
+			m_styleProcessor = styleProcessor ?? throw new ArgumentNullException(nameof(styleProcessor));
+			m_templateProcessor = templateProcessor ?? throw new ArgumentNullException(nameof(templateProcessor));
+			m_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 		/// <inheritdoc cref="IFileProcessor.Process(string, string, string)"/>
-		public async Task Process ( string fileName , string sourceFolder , string targetFolder ) {
-			var directory = Path.GetDirectoryName ( fileName );
+		public async Task Process(string fileName , string sourceFolder , string targetFolder) {
+			var directory = Path.GetDirectoryName(fileName);
 			if ( directory == null ) return;
 
-			Directory.CreateDirectory ( Path.Combine ( targetFolder , directory ) );
-			using var file = File.Open ( Path.Combine ( sourceFolder , fileName ) , FileMode.Open , FileAccess.Read , FileShare.Read );
-			using var reader = new StreamReader ( file );
-			var content = await reader.ReadToEndAsync ();
+			Directory.CreateDirectory(Path.Combine(targetFolder , directory));
+			using var file = File.Open(Path.Combine(sourceFolder , fileName) , FileMode.Open , FileAccess.Read , FileShare.Read);
+			using var reader = new StreamReader(file);
+			var content = await reader.ReadToEndAsync();
 
-			var componentNamespaceMatch = Regex.Match ( content , @"\<component-namespace\>.*\<\/component-namespace\>" , RegexOptions.IgnoreCase | RegexOptions.Singleline );
+			var componentNamespaceMatch = Regex.Match(content , @"\<template \@.*\>" , RegexOptions.IgnoreCase);
 			var componentNamespace = "";
-			if ( componentNamespaceMatch != null && !string.IsNullOrEmpty ( componentNamespaceMatch.Value ) ) {
+			if ( componentNamespaceMatch != null && !string.IsNullOrEmpty(componentNamespaceMatch.Value) ) {
 				componentNamespace = componentNamespaceMatch.Value
-					.Replace ( "<component-namespace>" , "" )
-					.Replace ( "</component-namespace>" , "" )
-					.Replace ( "\n" , "" )
-					.Replace ( "\r" , "" )
-					.Trim ();
+					.Replace("<template" , "")
+					.Replace(">" , "")
+					.Replace("@" , "")
+					.Trim();
 			}
 
-			var context = GetContext ( Path.GetFileName ( fileName ) , componentNamespace );
+			var context = GetContext(Path.GetFileName(fileName) , componentNamespace);
 
-			var processedComponent = new StringBuilder ();
-			processedComponent.Append ( await GetTemplate ( content , context ) );
-			processedComponent.Append ( await GetScript ( content , context ) );
-			processedComponent.Append ( await GetStyle ( content , context ) );
+			var processedComponent = new StringBuilder();
+			processedComponent.Append(await GetTemplate(content , context));
+			processedComponent.Append(await GetScript(content , context));
+			processedComponent.Append(await GetStyle(content , context));
 
-			File.WriteAllText ( Path.Combine ( targetFolder , fileName ) , processedComponent.ToString () );
+			File.WriteAllText(Path.Combine(targetFolder , fileName) , processedComponent.ToString());
 		}
 
-		private ComponentContextModel GetContext ( string fileName , string componentNamespace ) {
+		private ComponentContextModel GetContext(string fileName , string componentNamespace) {
 			return new ComponentContextModel {
 				ComponentNamespace = componentNamespace ,
-				ComponentId = Guid.NewGuid ().ToString () , //TODO: change to compute hash
+				ComponentId = Guid.NewGuid().ToString() , //TODO: change to compute hash
 				FileName = fileName
 			};
 		}
 
-		private Task<string> GetScript ( string content , ComponentContextModel contextModel ) {
-			var (startIndex, endIndex) = GetContentPart ( content , "script" );
+		private Task<string> GetScript(string content , ComponentContextModel contextModel) {
+			var (startIndex, endIndex) = GetContentPart(content , "script");
 
 			if ( startIndex == -1 ) {
 				var errorMessage = $"Component `{contextModel.FileName}` don't have script tag! Script tag is required part of component!";
-				m_logger.Log ( errorMessage );
-				throw new Exception ( errorMessage );
+				m_logger.Log(errorMessage);
+				throw new Exception(errorMessage);
 			}
 
-			return m_scriptProcessor.ProcessScript ( content.Substring ( startIndex , endIndex - startIndex ).ToString () , contextModel );
+			return m_scriptProcessor.ProcessScript(content.Substring(startIndex , endIndex - startIndex).ToString() , contextModel);
 		}
 
-		private Task<string> GetStyle ( string content , ComponentContextModel contextModel ) {
-			var (startIndex, endIndex) = GetContentPart ( content , "style" );
+		private Task<string> GetStyle(string content , ComponentContextModel contextModel) {
+			var (startIndex, endIndex) = GetContentPart(content , "style");
 
 			if ( startIndex == -1 ) return Task.FromResult("");
 
-			return m_styleProcessor.ProcessStyle ( content.Substring ( startIndex , endIndex - startIndex ).ToString () , contextModel );
+			return m_styleProcessor.ProcessStyle(content.Substring(startIndex , endIndex - startIndex).ToString() , contextModel);
 		}
 
-		private Task<string> GetTemplate ( string content , ComponentContextModel contextModel ) {
-			var (startIndex, endIndex) = GetContentPart ( content , "template" );
+		private Task<string> GetTemplate(string content , ComponentContextModel contextModel) {
+			var (startIndex, endIndex) = GetContentPart(content , "template", withEnding: false);
 
 			if ( startIndex == -1 ) {
 				var errorMessage = $"Component `{contextModel.FileName}` don't have template tag! Template tag is required part of component!";
-				m_logger.Log ( errorMessage );
-				throw new Exception ( errorMessage );
+				m_logger.Log(errorMessage);
+				throw new Exception(errorMessage);
 			}
 
-			return m_templateProcessor.ProcessTemplate ( content.Substring ( startIndex , endIndex - startIndex ).ToString () , contextModel );
+			return m_templateProcessor.ProcessTemplate(content.Substring(startIndex , endIndex - startIndex).ToString() , contextModel);
 		}
 
-		private (int startIndex, int endIndex) GetContentPart ( string content , string tag ) {
+		private (int startIndex, int endIndex) GetContentPart(string content , string tag , bool withEnding = true) {
 			var closeTag = $"</{tag}>";
-			var startIndex = content.IndexOf ( $"<{tag}>" , StringComparison.OrdinalIgnoreCase );
-			var endIndex = content.LastIndexOf ( closeTag , StringComparison.OrdinalIgnoreCase ) + closeTag.Length;
+			var startIndex = content.IndexOf(withEnding ? $"<{tag}>" : $"<{tag}" , StringComparison.OrdinalIgnoreCase);
+			var endIndex = content.LastIndexOf(closeTag , StringComparison.OrdinalIgnoreCase) + closeTag.Length;
 
 			return (startIndex, endIndex);
 		}

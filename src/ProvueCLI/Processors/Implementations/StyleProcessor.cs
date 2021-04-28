@@ -58,16 +58,9 @@ namespace ProvueCLI.Processors.Implementations {
 
 			var classes = new HashSet<string>();
 			foreach ( var sheet in sheets ) {
-				var rules = sheet.Rules;
+				var rules = sheet.Rules.Cast<ICssStyleRule>();
 				foreach ( var rule in rules ) {
-					//WORKAROUND: I don't understand how to get from rule selector
-					var method = rule.GetType()?.GetProperty("SelectorText")?.GetGetMethod() ?? null;
-					if ( method == null ) continue;
-
-					var ruleSelector = method.Invoke(rule , new object[0]) ?? "";
-					if ( ruleSelector == null ) continue;
-
-					var selectorText = ruleSelector.ToString() ?? "";
+					var selectorText = rule.SelectorText;
 					var matches = Regex.Matches(selectorText , @"\.[_a-zA-Z0-9-]{0,}").ToList().Select(a => a.Value).Where(a => !string.IsNullOrEmpty(a) && a != ".");
 					foreach ( var match in matches ) {
 						classes.Add(match);
