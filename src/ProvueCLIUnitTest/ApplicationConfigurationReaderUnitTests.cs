@@ -84,6 +84,20 @@ namespace ProvueCLITests {
 
 		[Fact]
 		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_BuildForRelease () {
+			// arrange
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
+			var testConfiguration = new ApplicationConfiguration { BuildForRelease = true };
+
+			// act
+			var configuration = await reader.ReadConfiguration ( new List<string> { @"buildrelease" } );
+
+			// assert
+			Assert.Equal ( testConfiguration , configuration );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
 		public async Task ReadConfiguration_WebServerHost () {
 			// arrange
 			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
