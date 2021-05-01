@@ -245,6 +245,42 @@ namespace ProvueCLITests {
 			A.CallTo ( () => logger.Log ( A<string>._ ) ).MustHaveHappenedOnceExactly ();
 		}
 
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_ReadFromFile_TurnToAbsolutePath () {
+			// arrange
+			var fileService = A.Fake<IFileService> ();
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , fileService );
+			var fileName = Path.Combine ( Directory.GetCurrentDirectory () , "provue" );
+			var testConfiguration = new ApplicationConfiguration { WebServerFolder = @"nega\nebulus" , BuildFolder = @"great\wall" , ReleaseFolder = @"aurora\oval" , SourceFolder = @"crypt\cosmic\cyrcus" };
+			A.CallTo ( () => fileService.ReadJsonFileAsync<ApplicationConfiguration> ( fileName ) ).Returns ( Task.FromResult ( testConfiguration ) );
+			A.CallTo ( () => fileService.FileExists ( fileName ) ).Returns ( true );
+
+			// act
+			var configuration = await reader.ReadConfiguration ( Enumerable.Empty<string> () );
+
+			// assert
+			Assert.Equal ( Path.Combine ( Directory.GetCurrentDirectory () , @"nega\nebulus" ) , configuration.WebServerFolder );
+			Assert.Equal ( Path.Combine ( Directory.GetCurrentDirectory () , @"great\wall" ) , configuration.BuildFolder );
+			Assert.Equal ( Path.Combine ( Directory.GetCurrentDirectory () , @"aurora\oval" ) , configuration.ReleaseFolder );
+			Assert.Equal ( Path.Combine ( Directory.GetCurrentDirectory () , @"crypt\cosmic\cyrcus" ) , configuration.SourceFolder );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public async Task ReadConfiguration_Throw_NullArgument () {
+			// arrange
+			var reader = new ApplicationConfigurationReader ( A.Fake<ILogger> () , A.Fake<IFileService> () );
+
+			// assert
+			await Assert.ThrowsAsync<ArgumentNullException> (
+				async () => {
+					// act
+					await reader.ReadConfiguration ( new List<string> { null } );
+				}
+			);
+		}
+
 	}
 
 }

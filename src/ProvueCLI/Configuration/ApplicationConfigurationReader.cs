@@ -62,6 +62,8 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private ApplicationConfiguration ParseArgument ( string argument , ApplicationConfiguration applicationConfiguration ) {
+			if ( string.IsNullOrEmpty(argument) ) throw new ArgumentNullException(nameof(argument));
+
 			var argumentSpan = argument.AsSpan ();
 			var separator = argumentSpan.IndexOf ( ":" , StringComparison.InvariantCulture );
 			ReadOnlySpan<char> argumentType;
