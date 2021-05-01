@@ -5,26 +5,30 @@ namespace ProvueCLI.Processors.Implementations {
 
 	/// <inheritdoc cref="IFileProcessorFactory"/>
 	public class FileProcessorFactory : IFileProcessorFactory {
-		
+
 		private readonly IServiceProvider m_serviceProvider;
 
-		public FileProcessorFactory (IServiceProvider serviceProvider) => m_serviceProvider = serviceProvider;
+		public FileProcessorFactory(IServiceProvider serviceProvider) {
+			m_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+		}
 
 		/// <inheritdoc cref="IFileProcessorFactory.CreateFileProcessorByExtension(string)"/>
-		public IFileProcessor? CreateFileProcessorByExtension ( string extension ) {
+		public IFileProcessor? CreateFileProcessorByExtension(string extension) {
+			if ( extension == null ) throw new ArgumentNullException(nameof(extension));
+
 			IFileProcessor? processor = null;
 			switch ( extension ) {
 				case ".vue":
-					processor = m_serviceProvider.GetService<IComponentFileProcessor> ();
+					processor = m_serviceProvider.GetService<IComponentFileProcessor>();
 					break;
 				case ".html":
-					processor = m_serviceProvider.GetService<IHtmlFileProcessor> ();
+					processor = m_serviceProvider.GetService<IHtmlFileProcessor>();
 					break;
 				case ".js":
-					processor = m_serviceProvider.GetService<IScriptFileProcessor> ();
+					processor = m_serviceProvider.GetService<IScriptFileProcessor>();
 					break;
 				case ".css":
-					processor = m_serviceProvider.GetService<IStyleFileProcessor> ();
+					processor = m_serviceProvider.GetService<IStyleFileProcessor>();
 					break;
 				case ".png":
 				case ".jpg":
@@ -32,7 +36,7 @@ namespace ProvueCLI.Processors.Implementations {
 				case ".gif":
 				case ".svg":
 				case ".webp":
-					processor = m_serviceProvider.GetService<IImageFileProcessor> ();
+					processor = m_serviceProvider.GetService<IImageFileProcessor>();
 					break;
 			}
 
