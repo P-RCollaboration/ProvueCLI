@@ -94,6 +94,25 @@ namespace ProvueCLITests {
 			File.Delete ( tempFileName );
 		}
 
+		[Fact]
+		[Trait ( "Category" , "Integration" )]
+		public async Task ReadJsonFileAsync_ReadModel_Throw_Model_Null () {
+			// arrange
+			var fileService = new FileService ();
+			var tempFileName = Path.GetTempFileName () + Guid.NewGuid ();
+			await File.WriteAllTextAsync ( tempFileName , "null" );
+
+			// assert
+			await Assert.ThrowsAsync<ArgumentException> (
+				async () => {
+					// act
+					await fileService.ReadJsonFileAsync<TestModel> ( tempFileName );
+				}
+			);
+
+			File.Delete ( tempFileName );
+		}
+
 	}
 
 }

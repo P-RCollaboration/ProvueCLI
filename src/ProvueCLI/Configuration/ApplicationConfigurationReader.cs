@@ -137,43 +137,6 @@ namespace ProvueCLI.Configuration {
 		}
 
 		private ApplicationConfiguration ParseSourceFolder ( ReadOnlySpan<char> value , ApplicationConfiguration applicationConfiguration ) {
-			if ( string.IsNullOrEmpty ( applicationConfiguration.BuildFolder ) && string.IsNullOrEmpty ( applicationConfiguration.ReleaseFolder ) && string.IsNullOrEmpty ( applicationConfiguration.WebServerFolder ) ) {
-				return applicationConfiguration with
-				{
-					BuildFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "build" ) ) ,
-					ReleaseFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "release" ) ) ,
-					SourceFolder = Path.GetFullPath ( value.ToString () ) ,
-					WebServerFolder = Path.GetFullPath ( value.ToString () )
-				};
-			}
-
-			if ( string.IsNullOrEmpty ( applicationConfiguration.BuildFolder ) ) {
-
-				return applicationConfiguration with
-				{
-					BuildFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "build" ) ) ,
-					SourceFolder = Path.GetFullPath ( value.ToString () )
-				};
-			}
-
-			if ( string.IsNullOrEmpty ( applicationConfiguration.ReleaseFolder ) ) {
-
-				return applicationConfiguration with
-				{
-					BuildFolder = Path.GetFullPath ( Path.Combine ( value.ToString () , "release" ) ) ,
-					SourceFolder = Path.GetFullPath ( value.ToString () )
-				};
-			}
-
-			if ( string.IsNullOrEmpty ( applicationConfiguration.WebServerFolder ) ) {
-
-				return applicationConfiguration with
-				{
-					WebServerFolder = Path.GetFullPath ( value.ToString () ) ,
-					SourceFolder = Path.GetFullPath ( value.ToString () )
-				};
-			}
-
 			return applicationConfiguration with { SourceFolder = Path.GetFullPath ( value.ToString () ) };
 		}
 
@@ -183,8 +146,6 @@ namespace ProvueCLI.Configuration {
 
 		private async Task<ApplicationConfiguration> ReadConfigurationFile ( string configurationFile ) {
 			var configuration = await m_fileService.ReadJsonFileAsync<ApplicationConfiguration> ( configurationFile );
-
-			configuration ??= new ApplicationConfiguration ();
 
 			if ( !string.IsNullOrEmpty ( configuration.BuildFolder ) ) configuration = configuration with { BuildFolder = Path.GetFullPath ( configuration.BuildFolder ) };
 			if ( !string.IsNullOrEmpty ( configuration.WebServerFolder ) ) configuration = configuration with { WebServerFolder = Path.GetFullPath ( configuration.WebServerFolder ) };
