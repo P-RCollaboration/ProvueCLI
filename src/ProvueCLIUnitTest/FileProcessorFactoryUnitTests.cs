@@ -2,10 +2,6 @@
 using ProvueCLI.Processors;
 using ProvueCLI.Processors.Implementations;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace ProvueCLITests {
@@ -63,7 +59,7 @@ namespace ProvueCLITests {
 			var fileProcessor = factory.CreateFileProcessorByExtension ( ".vue" );
 
 			// assert
-			Assert.True( fileProcessor is ComponentFileProcessor );
+			Assert.True ( fileProcessor is ComponentFileProcessor );
 		}
 
 		[Fact]
@@ -79,6 +75,57 @@ namespace ProvueCLITests {
 
 			// assert
 			Assert.True ( fileProcessor is HtmlFileProcessor );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public void CreateFileProcessorByExtension_Js_Extension () {
+			// arrange
+			var serviceProvider = A.Fake<IServiceProvider> ();
+			var factory = new FileProcessorFactory ( serviceProvider );
+			A.CallTo ( () => serviceProvider.GetService ( typeof ( IScriptFileProcessor ) ) ).Returns ( A.Fake<ScriptFileProcessor> () );
+
+			// action
+			var fileProcessor = factory.CreateFileProcessorByExtension ( ".js" );
+
+			// assert
+			Assert.True ( fileProcessor is ScriptFileProcessor );
+		}
+
+		[Fact]
+		[Trait ( "Category" , "Unit" )]
+		public void CreateFileProcessorByExtension_Css_Extension () {
+			// arrange
+			var serviceProvider = A.Fake<IServiceProvider> ();
+			var factory = new FileProcessorFactory ( serviceProvider );
+			A.CallTo ( () => serviceProvider.GetService ( typeof ( IStyleFileProcessor ) ) ).Returns ( A.Fake<StyleFileProcessor> () );
+
+			// action
+			var fileProcessor = factory.CreateFileProcessorByExtension ( ".css" );
+
+			// assert
+			Assert.True ( fileProcessor is StyleFileProcessor );
+		}
+
+		[Theory]
+		[InlineData ( ".png" )]
+		[InlineData ( ".jpg" )]
+		[InlineData ( ".jpeg" )]
+		[InlineData ( ".gif" )]
+		[InlineData ( ".svg" )]
+		[InlineData ( ".webp" )]
+		[Trait ( "Category" , "Unit" )]
+		public void CreateFileProcessorByExtension_Image_Extension ( string extension ) {
+			// arrange
+			var serviceProvider = A.Fake<IServiceProvider> ();
+			var factory = new FileProcessorFactory ( serviceProvider );
+			A.CallTo ( () => serviceProvider.GetService ( typeof ( IImageFileProcessor ) ) ).Returns ( A.Fake<ImageFileProcessor> () );
+
+			// action
+			var fileProcessor = factory.CreateFileProcessorByExtension ( extension );
+
+			// assert
+			Assert.True ( fileProcessor is ImageFileProcessor );
 		}
 
 	}
