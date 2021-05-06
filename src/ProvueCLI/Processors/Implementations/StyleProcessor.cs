@@ -13,7 +13,6 @@ using AngleSharpConfiguration = AngleSharp.Configuration;
 
 namespace ProvueCLI.Processors.Implementations {
 
-	/// <inheritdoc cref="IStyleProcessor"/>
 	public class StyleProcessor : IStyleProcessor {
 
 		private readonly ILogger m_logger;
@@ -22,14 +21,13 @@ namespace ProvueCLI.Processors.Implementations {
 			m_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
-		/// <inheritdoc cref="IStyleProcessor.ProcessStyle(string, ComponentContextModel)"/>
-		public async Task<string> ProcessStyle(string content , ComponentContextModel componentContextModel) {
+		public string ProcessStyle(string content , ComponentContextModel componentContextModel) {
 			var pureCss = ConvertFromScss(content);
 
 			if ( Program.ApplicationConfiguration.BuildForRelease ) return Uglify.Css(pureCss).Code;
 
 			if ( !string.IsNullOrEmpty(componentContextModel.ComponentNamespace) ) {
-				pureCss = await AddSuffixToClassesAsync(pureCss , componentContextModel.ComponentNamespace , componentContextModel.FileName);
+				pureCss = AddSuffixToClassesAsync(pureCss , componentContextModel.ComponentNamespace , componentContextModel.FileName);
 			}
 
 			return pureCss;
@@ -47,11 +45,13 @@ namespace ProvueCLI.Processors.Implementations {
 			}
 		}
 
-		private async Task<string> AddSuffixToClassesAsync(string content , string componentNamespace , string fileName) {
+		private string AddSuffixToClassesAsync(string content , string componentNamespace , string fileName) {
 			var context = BrowsingContext.New(AngleSharpConfiguration.Default.WithCss());
 
 			// replace tag template to ptemplate because html has own tag template
-			var document = await context.OpenAsync(req => req.Content(content));
+			var task = context.OpenAsync(req => req.Content(content));
+			Task.WaitAll(task);
+			var document = task.Result;
 			var sheets = document.StyleSheets.ToList().Cast<ICssStyleSheet>();
 			var styleElement = document.QuerySelector("style");
 			var pathHash = "-" + ProcessorHelpers.GetPathHash(componentNamespace + fileName);

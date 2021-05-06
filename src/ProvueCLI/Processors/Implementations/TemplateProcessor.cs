@@ -11,10 +11,10 @@ namespace ProvueCLI.Processors.Implementations {
 	public class TemplateProcessor : ITemplateProcessor {
 
 		/// <inheritdoc cref="ITemplateProcessor.ProcessTemplate(string, ComponentContextModel)"/>
-		public async Task<string> ProcessTemplate(string content , ComponentContextModel componentContextModel) {
+		public string ProcessTemplate(string content , ComponentContextModel componentContextModel) {
 
 			if ( !string.IsNullOrEmpty(componentContextModel.ComponentNamespace) ) {
-				content = await AddSuffixToClassesAsync(content , componentContextModel.ComponentNamespace , componentContextModel.FileName);
+				content = AddSuffixToClassesAsync(content , componentContextModel.ComponentNamespace , componentContextModel.FileName);
 			}
 
 			if ( Program.ApplicationConfiguration.BuildForRelease ) return Uglify.Html(content).Code;
@@ -22,11 +22,13 @@ namespace ProvueCLI.Processors.Implementations {
 			return content;
 		}
 
-		private async Task<string> AddSuffixToClassesAsync(string content , string componentNamespace , string fileName) {
+		private string AddSuffixToClassesAsync(string content , string componentNamespace , string fileName) {
 			var context = BrowsingContext.New(AngleSharpConfiguration.Default);
 
 			// replace tag template to ptemplate because html has own tag template
-			var document = await context.OpenAsync(req => req.Content(content.Replace("<template" , "<ptemplate").Replace("</template>" , "</ptemplate>")));
+			var task = context.OpenAsync(req => req.Content(content.Replace("<template" , "<ptemplate").Replace("</template>" , "</ptemplate>")));
+			Task.WaitAll(task);
+			var document = task.Result;
 
 			var templateElement = document.QuerySelector("ptemplate");
 			var classesElements = templateElement.QuerySelectorAll("*").Where(a => a.ClassList.Any());

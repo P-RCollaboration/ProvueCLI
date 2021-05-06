@@ -31,11 +31,11 @@ namespace ProvueCLI.Processors.Implementations {
 				if ( directoryName != null ) await ProcessFolder ( sourceFolder , targetFolder , new List<string> { directoryName } );
 			}
 
-			await ProcessFilesInFolder ( sourceFolder , targetFolder , new List<string> () );
+			ProcessFilesInFolder ( sourceFolder , targetFolder , new List<string> () );
 		}
 
 		private async Task ProcessFolder ( string sourceFolder , string targetFolder , IEnumerable<string> pathSegments ) {
-			string fullPath = await ProcessFilesInFolder ( sourceFolder , targetFolder , pathSegments );
+			string fullPath = ProcessFilesInFolder ( sourceFolder , targetFolder , pathSegments );
 			if ( fullPath == "" ) return;
 
 			var directories = Directory.GetDirectories ( fullPath );
@@ -49,7 +49,7 @@ namespace ProvueCLI.Processors.Implementations {
 			}
 		}
 
-		private async Task<string> ProcessFilesInFolder ( string sourceFolder , string targetFolder , IEnumerable<string> pathSegments ) {
+		private string ProcessFilesInFolder ( string sourceFolder , string targetFolder , IEnumerable<string> pathSegments ) {
 			var relativeFolder = string.Join ( '/' , pathSegments );
 			var fullPath = Path.Combine ( sourceFolder , relativeFolder );
 			if ( fullPath == targetFolder ) return ""; // prevent forever recursive for target folder
@@ -73,7 +73,7 @@ namespace ProvueCLI.Processors.Implementations {
 				if ( fileProcessor == null ) continue;
 
 				m_logger.Log ( $"File is processing {relativeFolder} {fileName}..." );
-				await fileProcessor.Process ( Path.Combine ( relativeFolder , fileName ) , sourceFolder , targetFolder );
+				fileProcessor.Process ( Path.Combine ( relativeFolder , fileName ) , sourceFolder , targetFolder );
 			}
 
 			return fullPath;

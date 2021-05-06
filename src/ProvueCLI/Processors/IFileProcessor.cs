@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace ProvueCLI.Processors {
+﻿namespace ProvueCLI.Processors {
 
 	/// <summary>
 	/// Common interface for all file processors.
@@ -13,7 +11,7 @@ namespace ProvueCLI.Processors {
 		/// <param name="fileName">Original file name.</param>
 		/// <param name="targetFolder">Root folder where will be store precessed files.</param>
 		/// <param name="sourceFolder">The root folder contains original files that used the developer.</param>
-		Task Process ( string fileName, string sourceFolder, string targetFolder );
+		void Process ( string fileName, string sourceFolder, string targetFolder );
 
 	}
 

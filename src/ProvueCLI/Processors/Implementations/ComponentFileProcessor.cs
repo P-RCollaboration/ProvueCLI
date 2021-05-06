@@ -29,14 +29,14 @@ namespace ProvueCLI.Processors.Implementations {
 		}
 
 		/// <inheritdoc cref="IFileProcessor.Process(string, string, string)"/>
-		public async Task Process(string fileName , string sourceFolder , string targetFolder) {
+		public void Process(string fileName , string sourceFolder , string targetFolder) {
 			var directory = Path.GetDirectoryName(fileName);
 			if ( directory == null ) return;
 
 			Directory.CreateDirectory(Path.Combine(targetFolder , directory));
 			using var file = File.Open(Path.Combine(sourceFolder , fileName) , FileMode.Open , FileAccess.Read , FileShare.Read);
 			using var reader = new StreamReader(file);
-			var content = await reader.ReadToEndAsync();
+			var content = reader.ReadToEnd();
 
 			var componentNamespaceMatch = Regex.Match(content , @"\<template \@.*\>" , RegexOptions.IgnoreCase);
 			var componentNamespace = "";
@@ -51,9 +51,9 @@ namespace ProvueCLI.Processors.Implementations {
 			var context = GetContext(Path.GetFileName(fileName) , componentNamespace);
 
 			var processedComponent = new StringBuilder();
-			processedComponent.Append(await GetTemplate(content , context));
-			processedComponent.Append(await GetScript(content , context));
-			processedComponent.Append(await GetStyle(content , context));
+			processedComponent.Append(GetTemplate(content , context));
+			processedComponent.Append(GetScript(content , context));
+			processedComponent.Append(GetStyle(content , context));
 
 			File.WriteAllText(Path.Combine(targetFolder , fileName) , processedComponent.ToString());
 		}
@@ -65,7 +65,7 @@ namespace ProvueCLI.Processors.Implementations {
 			};
 		}
 
-		private Task<string> GetScript(string content , ComponentContextModel contextModel) {
+		private string GetScript(string content , ComponentContextModel contextModel) {
 			var (startIndex, endIndex) = GetContentPart(content , "script");
 
 			if ( startIndex == -1 ) {
@@ -77,15 +77,15 @@ namespace ProvueCLI.Processors.Implementations {
 			return m_scriptProcessor.ProcessScript(content.Substring(startIndex , endIndex - startIndex).ToString() , contextModel);
 		}
 
-		private Task<string> GetStyle(string content , ComponentContextModel contextModel) {
+		private string GetStyle(string content , ComponentContextModel contextModel) {
 			var (startIndex, endIndex) = GetContentPart(content , "style");
 
-			if ( startIndex == -1 ) return Task.FromResult("");
+			if ( startIndex == -1 ) return "";
 
 			return m_styleProcessor.ProcessStyle(content.Substring(startIndex , endIndex - startIndex).ToString() , contextModel);
 		}
 
-		private Task<string> GetTemplate(string content , ComponentContextModel contextModel) {
+		private string GetTemplate(string content , ComponentContextModel contextModel) {
 			var (startIndex, endIndex) = GetContentPart(content , "template", withEnding: false);
 
 			if ( startIndex == -1 ) {

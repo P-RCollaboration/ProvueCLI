@@ -1,5 +1,4 @@
 ﻿using ProvueCLI.Processors.PresentationClasses;
-using System.Threading.Tasks;
 
 namespace ProvueCLI.Processors {
 
@@ -14,7 +13,7 @@ namespace ProvueCLI.Processors {
 		/// <param name="componentContextModel">Model cantains component related data.</param>
 		/// <param name="content">Style tag in string.</param>
 		/// <returns>Precessed style tag.</returns>
-		Task<string> ProcessStyle ( string content , ComponentContextModel componentContextModel );
+		string ProcessStyle ( string content , ComponentContextModel componentContextModel );
 
 	}
 
