@@ -57,9 +57,8 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 						m_logger.Log($"File is processing {relativeFilePath}...");
 						try {
 							fileProvider.Process(relativeFilePath , m_sourceFolder , m_targetFolder);
-						} catch ( Exception e ) {
+						} catch {
 							previousPath = "";
-							m_logger.Log($"Failed while processing {relativeFilePath} {e.Message}");
 							continue;
 						}
 
