@@ -43,8 +43,8 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 		}
 
 		private async Task ExecuteAsync(CancellationToken stoppingToken) {
+			var previousPath = "";
 			while ( !stoppingToken.IsCancellationRequested ) {
-				var previousPath = "";
 				while ( m_queue.TryDequeue(out var fullPath) ) {
 					lock ( m_locker ) {
 						if ( previousPath == fullPath ) continue;
@@ -74,7 +74,7 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 
 		public virtual Task StartAsync(CancellationToken cancellationToken) {
 			m_currentTask = ExecuteAsync(m_cancellationToken.Token);
-
+			
 			if ( m_currentTask.IsCompleted ) return m_currentTask;
 
 			return Task.CompletedTask;
@@ -95,7 +95,13 @@ namespace ProvueCLI.ChangesWatcher.Implementations {
 		public virtual void Dispose() => m_cancellationToken.Cancel();
 
 		/// <inheritdoc cref="IUpdateFileBackgroundService.Enqueue(string)"/>
-		public void Enqueue(string fullPath) => m_queue.Enqueue(fullPath);
+		public void Enqueue(string fullPath) {
+			if ( m_queue.TryPeek(out var lastPath) ) {
+				if ( lastPath == fullPath ) return;
+			}
+
+			m_queue.Enqueue(fullPath);
+		}
 
 	}
 
