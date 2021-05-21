@@ -17,8 +17,8 @@
     },
     "ProvueCLI": {
       "commandName": "Project",
-      "commandLineArgs": "run",
-      "workingDirectory": "D:\\work\\Repositories\\PRCollaborations\\corecomponents\\CoreComponents",
+      "commandLineArgs": "create src\\examples\\helloworld\\Test",
+      "workingDirectory": "C:\\Users\\Pavel\\source\\repos\\test\\CoreComponents",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

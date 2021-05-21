@@ -94,6 +94,57 @@ namespace ProvueCLITests {
 			File.Delete ( tempFileName );
 		}
 
+		[Fact]
+		[Trait("Category", "Integration")]
+		public void GetFileNameFromPathWithOutExtension_Positive()
+		{
+			// arrange
+			var fileService = new FileService();
+			var tempFileName = Guid.NewGuid().ToString();
+			var tempFilePath = Path.Combine(Path.GetTempPath(), tempFileName);
+			File.Create(tempFilePath).Close();
+
+			// assert
+			Assert.Equal(fileService.GetFileName(tempFilePath), tempFileName);
+
+			File.Delete(tempFilePath);
+		}
+
+		[Fact]
+		[Trait("Category", "Integration")]
+		public void GetFileNameFromPathWithExtension_Positive()
+		{
+			// arrange
+			var fileService = new FileService();
+			var tempFileName = Guid.NewGuid().ToString();
+			var tempFileNameWithExtension = tempFileName + ".vue";
+			var tempFilePath = Path.Combine(Path.GetTempPath(), tempFileNameWithExtension);
+			File.Create(tempFilePath).Close();
+
+			// assert
+			Assert.Equal(fileService.GetFileName(tempFilePath), tempFileName);
+
+			File.Delete(tempFilePath);
+		}
+
+		[Fact]
+		[Trait("Category", "Integration")]
+		public async Task WriteToFile_Positive()
+		{
+			// arrange
+			var fileService = new FileService();
+			var tempFileName = Guid.NewGuid().ToString();
+			var tempFilePath = Path.Combine(Path.GetTempPath(), tempFileName);
+			var tempText = "test some file writes";
+			await fileService.WriteToFile(tempFilePath, tempText);
+
+			var result = await File.ReadAllTextAsync(tempFilePath);
+			// assert
+			Assert.Equal(result, tempText);
+
+			File.Delete(tempFilePath);
+		}
+
 	}
 
 }
